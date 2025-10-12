@@ -16,7 +16,7 @@ export default function App() {
   const cargarArchivosBase = async () => {
     try {
       const res = await axios.get(
-        "https://detector-plagio-backend.onrender.com/listar-base"
+        "https://proyectoplagiocomprobador-backend.onrender.com/listar-base"
       );
       setArchivosBase(res.data.archivos);
       if (res.data.archivos.length > 0) setBaseCargada(true);
@@ -41,7 +41,7 @@ export default function App() {
 
     try {
       const res = await axios.post(
-        "https://detector-plagio-backend.onrender.com/upload-base",
+        "https://proyectoplagiocomprobador-backend.onrender.com/upload-base",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -74,7 +74,7 @@ export default function App() {
 
     try {
       const res = await axios.post(
-        "https://detector-plagio-backend.onrender.com/compare",
+        "https://proyectoplagiocomprobador-backend.onrender.com/compare",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
