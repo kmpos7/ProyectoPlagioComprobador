@@ -14,6 +14,12 @@ export default function App() {
 
   const API_BASE = "https://proyectoplagiocomprobador-backend.onrender.com";
 
+  // 🔹 Función para truncar nombres largos
+  const truncarNombre = (nombre, max = 30) => {
+    if (!nombre) return "";
+    return nombre.length > max ? nombre.slice(0, max) + "..." : nombre;
+  };
+
   // 🔹 Cargar archivos base desde el backend
   const cargarArchivosBase = async () => {
     try {
@@ -72,6 +78,22 @@ export default function App() {
     } catch (err) {
       console.error(err);
       alert("Error al eliminar el archivo.");
+    }
+  };
+
+  // 🔹 Limpiar toda la base manualmente
+  const limpiarBaseManualmente = async () => {
+    if (
+      !window.confirm("¿Seguro que deseas limpiar toda la base de documentos?")
+    )
+      return;
+    try {
+      const res = await axios.post(`${API_BASE}/reset-base`);
+      alert(res.data.mensaje);
+      cargarArchivosBase();
+    } catch (err) {
+      console.error(err);
+      alert("Error al limpiar la base.");
     }
   };
 
@@ -187,6 +209,7 @@ export default function App() {
         <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>
           <i className="fas fa-database"></i> Base de documentos
         </h3>
+
         <input
           type="file"
           accept=".docx"
@@ -195,48 +218,68 @@ export default function App() {
         />
 
         {baseCargada && (
-          <ul
-            style={{
-              marginTop: "1rem",
-              fontSize: "0.9rem",
-              listStyle: "none",
-              padding: 0,
-            }}
-          >
-            {archivosBase.map((a, i) => (
-              <li
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "0.3rem 0",
-                  borderBottom: "1px solid #f3f4f6",
-                }}
-              >
-                <div>
-                  <i
-                    className="fas fa-file-word"
-                    style={{ color: "#2563eb" }}
-                  ></i>{" "}
-                  {a}
-                </div>
-                <button
-                  onClick={() => eliminarArchivoBase(a)}
+          <>
+            <ul
+              style={{
+                marginTop: "1rem",
+                fontSize: "0.9rem",
+                listStyle: "none",
+                padding: 0,
+                maxHeight: "200px",
+                overflowY: "auto",
+              }}
+            >
+              {archivosBase.map((a, i) => (
+                <li
+                  key={i}
                   style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "#dc2626",
-                    cursor: "pointer",
-                    fontSize: "1rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "0.3rem 0",
+                    borderBottom: "1px solid #f3f4f6",
                   }}
-                  title="Eliminar archivo"
+                  title={a}
                 >
-                  <i className="fas fa-trash"></i>
-                </button>
-              </li>
-            ))}
-          </ul>
+                  <div>
+                    <i
+                      className="fas fa-file-word"
+                      style={{ color: "#2563eb" }}
+                    ></i>{" "}
+                    {truncarNombre(a, 28)}
+                  </div>
+                  <button
+                    onClick={() => eliminarArchivoBase(a)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#dc2626",
+                      cursor: "pointer",
+                      fontSize: "1rem",
+                    }}
+                    title="Eliminar archivo"
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <button
+              onClick={limpiarBaseManualmente}
+              style={{
+                marginTop: "1rem",
+                background: "#dc2626",
+                color: "#fff",
+                padding: "0.5rem 1rem",
+                border: "none",
+                borderRadius: "0.5rem",
+                cursor: "pointer",
+              }}
+            >
+              <i className="fas fa-broom"></i> Limpiar toda la base
+            </button>
+          </>
         )}
       </div>
 
@@ -317,8 +360,10 @@ export default function App() {
             </thead>
             <tbody>
               {resumen.map((r, i) => (
-                <tr key={i}>
-                  <td style={{ padding: "8px" }}>{r.archivo}</td>
+                <tr key={i} title={r.archivo}>
+                  <td style={{ padding: "8px" }}>
+                    {truncarNombre(r.archivo, 35)}
+                  </td>
                   <td style={{ padding: "8px" }}>{r.similitud}%</td>
                 </tr>
               ))}
@@ -332,7 +377,7 @@ export default function App() {
                 <li key={i} style={{ marginBottom: "0.6rem" }}>
                   <strong>{f.similitud}%</strong> — "{f.oracion}"
                   <br />
-                  <small>Fuente: {f.archivo}</small>
+                  <small>Fuente: {truncarNombre(f.archivo, 40)}</small>
                 </li>
               ))}
             </ul>
