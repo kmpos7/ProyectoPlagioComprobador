@@ -124,6 +124,16 @@ def listar_base():
     ]
     return jsonify({"archivos": archivos})
 
+@app.route('/limpiar-base', methods=['POST'])
+def limpiar_base():
+    folder = 'base_textos'
+    if os.path.exists(folder):
+        for file in os.listdir(folder):
+            file_path = os.path.join(folder, file)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+    return jsonify({"mensaje": "Carpeta base_textos vaciada correctamente"})
+
 
 if __name__ == "__main__":
     app.run(debug=True)

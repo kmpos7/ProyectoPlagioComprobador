@@ -26,7 +26,22 @@ export default function App() {
   };
 
   useEffect(() => {
-    cargarArchivosBase();
+    // 🔹 Primero: limpiar la base del backend
+    fetch(
+      "https://proyectoplagiocomprobador-backend.onrender.com/limpiar-base",
+      {
+        method: "POST",
+      }
+    )
+      .then(() => {
+        console.log("🧹 Base limpiada al cargar la página");
+        // 🔹 Luego: cargar los archivos actualizados
+        cargarArchivosBase();
+      })
+      .catch((err) => {
+        console.error("Error al limpiar la base:", err);
+        cargarArchivosBase(); // Igual intenta cargar los archivos si falla
+      });
   }, []);
 
   // Subir base de comparación (varios archivos)
