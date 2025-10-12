@@ -149,7 +149,7 @@ export default function App() {
           marginBottom: "1rem",
         }}
       >
-        Analizador de Similitud de Documentos
+        Analizador de Similitud de Documentos v.1
       </h1>
       <p
         style={{ maxWidth: "600px", textAlign: "center", marginBottom: "2rem" }}
