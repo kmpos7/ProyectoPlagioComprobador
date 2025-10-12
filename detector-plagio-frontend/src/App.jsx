@@ -12,56 +12,47 @@ export default function App() {
   const [baseCargada, setBaseCargada] = useState(false);
   const [cargando, setCargando] = useState(false);
 
-  // Cargar base existente
+  const API_BASE = "https://proyectoplagiocomprobador-backend.onrender.com";
+
+  // 🔹 Cargar archivos base desde el backend
   const cargarArchivosBase = async () => {
     try {
-      const res = await axios.get(
-        "https://proyectoplagiocomprobador-backend.onrender.com/listar-base"
-      );
+      const res = await axios.get(`${API_BASE}/listar-base`);
       setArchivosBase(res.data.archivos);
       if (res.data.archivos.length > 0) setBaseCargada(true);
+      else setBaseCargada(false);
     } catch (err) {
-      console.error(err);
+      console.error("Error al listar base:", err);
     }
   };
 
+  // 🔹 Limpiar base al recargar la página
   useEffect(() => {
-    // 🔹 Primero: limpiar la base del backend
-    fetch(
-      "https://proyectoplagiocomprobador-backend.onrender.com/limpiar-base",
-      {
-        method: "POST",
+    const limpiarYRecargar = async () => {
+      try {
+        await axios.post(`${API_BASE}/reset-base`);
+        console.log("🧹 Base reiniciada al cargar la página");
+      } catch (err) {
+        console.error("Error al reiniciar la base:", err);
+      } finally {
+        await cargarArchivosBase();
       }
-    )
-      .then(() => {
-        console.log("🧹 Base limpiada al cargar la página");
-        // 🔹 Luego: cargar los archivos actualizados
-        cargarArchivosBase();
-      })
-      .catch((err) => {
-        console.error("Error al limpiar la base:", err);
-        cargarArchivosBase(); // Igual intenta cargar los archivos si falla
-      });
+    };
+    limpiarYRecargar();
   }, []);
 
-  // Subir base de comparación (varios archivos)
+  // 🔹 Subir varios archivos como base
   const handleBaseUpload = async (e) => {
     const files = e.target.files;
     if (!files.length) return;
 
     const formData = new FormData();
-    for (let f of files) {
-      formData.append("files", f);
-    }
+    for (let f of files) formData.append("files", f);
 
     try {
-      const res = await axios.post(
-        "https://proyectoplagiocomprobador-backend.onrender.com/upload-base",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const res = await axios.post(`${API_BASE}/upload-base`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       alert(res.data.mensaje);
       cargarArchivosBase();
     } catch (err) {
@@ -70,12 +61,24 @@ export default function App() {
     }
   };
 
-  // Seleccionar documento a analizar
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+  // 🔹 Eliminar un archivo específico de la base
+  const eliminarArchivoBase = async (nombre) => {
+    if (!window.confirm(`¿Eliminar el archivo "${nombre}" de la base?`)) return;
+
+    try {
+      const res = await axios.post(`${API_BASE}/eliminar-base`, { nombre });
+      alert(res.data.mensaje);
+      cargarArchivosBase();
+    } catch (err) {
+      console.error(err);
+      alert("Error al eliminar el archivo.");
+    }
   };
 
-  // Enviar documento a analizar
+  // 🔹 Seleccionar documento a analizar
+  const handleFileChange = (e) => setFile(e.target.files[0]);
+
+  // 🔹 Enviar documento a analizar
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
@@ -88,13 +91,9 @@ export default function App() {
     formData.append("file", file);
 
     try {
-      const res = await axios.post(
-        "https://proyectoplagiocomprobador-backend.onrender.com/compare",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const res = await axios.post(`${API_BASE}/compare`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       setResumen(res.data.resumen);
       setFragmentos(res.data.fragmentos);
@@ -107,7 +106,7 @@ export default function App() {
     }
   };
 
-  // Generar PDF
+  // 🔹 Generar PDF
   const generarPDF = async () => {
     const doc = new jsPDF("p", "mm", "a4");
     const contenedor = document.getElementById("resultados");
@@ -134,7 +133,7 @@ export default function App() {
     doc.save("reporte_comparacion.pdf");
   };
 
-  // Reiniciar análisis
+  // 🔹 Reiniciar análisis
   const handleReset = () => {
     setFile(null);
     setResumen([]);
@@ -194,15 +193,47 @@ export default function App() {
           multiple
           onChange={handleBaseUpload}
         />
+
         {baseCargada && (
-          <ul style={{ marginTop: "1rem", fontSize: "0.9rem" }}>
+          <ul
+            style={{
+              marginTop: "1rem",
+              fontSize: "0.9rem",
+              listStyle: "none",
+              padding: 0,
+            }}
+          >
             {archivosBase.map((a, i) => (
-              <li key={i}>
-                <i
-                  className="fas fa-file-word"
-                  style={{ color: "#2563eb" }}
-                ></i>{" "}
-                {a}
+              <li
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0.3rem 0",
+                  borderBottom: "1px solid #f3f4f6",
+                }}
+              >
+                <div>
+                  <i
+                    className="fas fa-file-word"
+                    style={{ color: "#2563eb" }}
+                  ></i>{" "}
+                  {a}
+                </div>
+                <button
+                  onClick={() => eliminarArchivoBase(a)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#dc2626",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                  }}
+                  title="Eliminar archivo"
+                >
+                  <i className="fas fa-trash"></i>
+                </button>
               </li>
             ))}
           </ul>

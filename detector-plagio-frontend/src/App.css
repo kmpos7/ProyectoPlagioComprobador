@@ -130,3 +130,145 @@ input[type="file"] {
   justify-content: center;
   gap: 1rem;
 }
+
+.base-list {
+  list-style: none;
+  padding: 0;
+}
+
+.base-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #eef2ff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 5px 0;
+}
+
+.btn-delete {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-delete:hover {
+  background: #c0392b;
+}
+.app-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #f3f4f6;
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+}
+
+.panel {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 800px;
+}
+
+.title {
+  text-align: center;
+  color: #1e3a8a;
+  margin-bottom: 2rem;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+h3 {
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.input-file {
+  cursor: pointer;
+}
+
+.btn {
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.btn-delete {
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+}
+
+.file-list {
+  list-style: none;
+  padding: 0;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.8rem;
+  margin-bottom: 0.4rem;
+}
+
+.empty {
+  color: #6b7280;
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.styled-table th,
+.styled-table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.fragment-card {
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.download-buttons {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}

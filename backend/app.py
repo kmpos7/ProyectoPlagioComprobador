@@ -134,10 +134,28 @@ def listar_base():
 
 @app.route("/reset-base", methods=["POST"])
 def reset_base():
-    """Permite limpiar manualmente la base temporal desde el frontend"""
-    for f in os.listdir(BASE_FOLDER):
-        os.remove(os.path.join(BASE_FOLDER, f))
-    return jsonify({"mensaje": "Base de archivos temporal reiniciada"})
+    """Elimina todos los archivos de la base temporal"""
+    for archivo in os.listdir(BASE_FOLDER):
+        ruta = os.path.join(BASE_FOLDER, archivo)
+        if os.path.isfile(ruta):
+            os.remove(ruta)
+    return jsonify({"mensaje": "Base temporal reiniciada correctamente"})
+
+
+@app.route('/eliminar-base', methods=['POST'])
+def eliminar_base():
+    data = request.get_json()
+    nombre = data.get('nombre')
+
+    if not nombre:
+        return jsonify({"error": "No se proporcionó un nombre de archivo"}), 400
+
+    path = os.path.join('base_textos', nombre)
+    if os.path.exists(path):
+        os.remove(path)
+        return jsonify({"mensaje": f"Archivo '{nombre}' eliminado correctamente"})
+    else:
+        return jsonify({"error": "Archivo no encontrado"}), 404
 
 
 if __name__ == "__main__":
