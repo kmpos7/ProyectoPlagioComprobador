@@ -15,7 +15,9 @@ export default function App() {
   // Cargar base existente
   const cargarArchivosBase = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:5000/listar-base");
+      const res = await axios.get(
+        "https://detector-plagio-backend.onrender.com/listar-base"
+      );
       setArchivosBase(res.data.archivos);
       if (res.data.archivos.length > 0) setBaseCargada(true);
     } catch (err) {
@@ -39,7 +41,7 @@ export default function App() {
 
     try {
       const res = await axios.post(
-        "http://127.0.0.1:5000/upload-base",
+        "https://detector-plagio-backend.onrender.com/upload-base",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -71,9 +73,13 @@ export default function App() {
     formData.append("file", file);
 
     try {
-      const res = await axios.post("http://127.0.0.1:5000/compare", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await axios.post(
+        "https://detector-plagio-backend.onrender.com/compare",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
       setResumen(res.data.resumen);
       setFragmentos(res.data.fragmentos);
