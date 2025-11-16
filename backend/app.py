@@ -55,6 +55,9 @@ def comparar_por_oraciones(texto_est, nombres_ref, vectorizer_global, tfidf_ref,
 
 @app.route("/compare", methods=["POST"])
 def compare():
+    import time
+    inicio = time.time()   # ⏳ INICIO DEL TIEMPO
+
     if "file" not in request.files:
         return jsonify({"error": "No se encontró un archivo con la clave 'file'"}), 400
 
@@ -78,32 +81,50 @@ def compare():
     if not textos_ref:
         return jsonify({"error": "No hay archivos base para comparar"}), 400
 
-    # 🔹 TF-IDF global
+    # TF-IDF global
     vectorizer = TfidfVectorizer(stop_words=stopwords.words("spanish"))
     tfidf_matrix = vectorizer.fit_transform([student_text] + textos_ref)
-    tfidf_ref = tfidf_matrix[1:]  # solo referencias
+    tfidf_ref = tfidf_matrix[1:]
 
-    # 🔹 Similitud global
+    # Similitud global por archivo
     resumen = []
+    similitudes = []
+
     for i, nombre in enumerate(nombres_ref):
         sim = cosine_similarity(tfidf_matrix[0:1], tfidf_ref[i:i + 1])[0][0]
+        porcentaje = round(sim * 100, 2)
+        similitudes.append(porcentaje)
+
         resumen.append({
             "archivo": nombre,
-            "similitud": round(sim * 100, 2)
+            "similitud": porcentaje
         })
 
-    # 🔹 Fragmentos sospechosos coherentes
-    fragmentos = comparar_por_oraciones(student_text, nombres_ref, vectorizer, tfidf_ref, umbral=0.4)
-
-    # Ordenar resultados
+    # ORDENAR
     resumen.sort(key=lambda x: x["similitud"], reverse=True)
+
+    # Calcular plagio global: promedio de similitudes
+    if len(similitudes) > 0:
+        plagio_global = round(sum(similitudes) / len(similitudes), 2)
+    else:
+        plagio_global = 0
+
+    # Fragmentos sospechosos
+    fragmentos = comparar_por_oraciones(student_text, nombres_ref, vectorizer, tfidf_ref, umbral=0.4)
     fragmentos.sort(key=lambda x: x["similitud"], reverse=True)
+
+    # Tiempo final
+    tiempo_total = round(time.time() - inicio, 3)
 
     return jsonify({
         "resumen": resumen,
         "fragmentos": fragmentos,
-        "texto": student_text
+        "texto": student_text,
+        "plagio_global": plagio_global,
+        "tiempo": tiempo_total
     })
+
+
 
 
 @app.route("/upload-base", methods=["POST"])

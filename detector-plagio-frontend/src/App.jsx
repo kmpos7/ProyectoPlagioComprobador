@@ -12,32 +12,30 @@ export default function App() {
   const [baseCargada, setBaseCargada] = useState(false);
   const [cargando, setCargando] = useState(false);
 
+  const [tiempoAnalisis, setTiempoAnalisis] = useState(null);
+  const [plagioGlobal, setPlagioGlobal] = useState(null);
+
   const API_BASE = "https://proyectoplagiocomprobador-backend.onrender.com";
 
-  // 🔹 Función para truncar nombres largos
   const truncarNombre = (nombre, max = 30) => {
     if (!nombre) return "";
     return nombre.length > max ? nombre.slice(0, max) + "..." : nombre;
   };
 
-  // 🔹 Cargar archivos base desde el backend
   const cargarArchivosBase = async () => {
     try {
       const res = await axios.get(`${API_BASE}/listar-base`);
       setArchivosBase(res.data.archivos);
-      if (res.data.archivos.length > 0) setBaseCargada(true);
-      else setBaseCargada(false);
+      setBaseCargada(res.data.archivos.length > 0);
     } catch (err) {
       console.error("Error al listar base:", err);
     }
   };
 
-  // 🔹 Limpiar base al recargar la página
   useEffect(() => {
     const limpiarYRecargar = async () => {
       try {
         await axios.post(`${API_BASE}/reset-base`);
-        console.log("🧹 Base reiniciada al cargar la página");
       } catch (err) {
         console.error("Error al reiniciar la base:", err);
       } finally {
@@ -47,7 +45,6 @@ export default function App() {
     limpiarYRecargar();
   }, []);
 
-  // 🔹 Subir varios archivos como base
   const handleBaseUpload = async (e) => {
     const files = e.target.files;
     if (!files.length) return;
@@ -67,9 +64,9 @@ export default function App() {
     }
   };
 
-  // 🔹 Eliminar un archivo específico de la base
   const eliminarArchivoBase = async (nombre) => {
-    if (!window.confirm(`¿Eliminar el archivo "${nombre}" de la base?`)) return;
+    if (!window.confirm(`¿Eliminar el archivo "${nombre}" de la base?"`))
+      return;
 
     try {
       const res = await axios.post(`${API_BASE}/eliminar-base`, { nombre });
@@ -81,12 +78,8 @@ export default function App() {
     }
   };
 
-  // 🔹 Limpiar toda la base manualmente
   const limpiarBaseManualmente = async () => {
-    if (
-      !window.confirm("¿Seguro que deseas limpiar toda la base de documentos?")
-    )
-      return;
+    if (!window.confirm("¿Seguro que deseas limpiar toda la base?")) return;
     try {
       const res = await axios.post(`${API_BASE}/reset-base`);
       alert(res.data.mensaje);
@@ -97,18 +90,17 @@ export default function App() {
     }
   };
 
-  // 🔹 Seleccionar documento a analizar
   const handleFileChange = (e) => setFile(e.target.files[0]);
 
-  // 🔹 Enviar documento a analizar
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
-      alert("Por favor selecciona un documento para analizar.");
+      alert("Selecciona un documento para analizar.");
       return;
     }
 
     setCargando(true);
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -120,6 +112,10 @@ export default function App() {
       setResumen(res.data.resumen);
       setFragmentos(res.data.fragmentos);
       setTextoAnalizado(res.data.texto);
+
+      // NUEVO
+      setTiempoAnalisis(res.data.tiempo);
+      setPlagioGlobal(res.data.plagio_global);
     } catch (err) {
       console.error(err);
       alert("Error al analizar el documento.");
@@ -128,7 +124,6 @@ export default function App() {
     }
   };
 
-  // 🔹 Generar PDF
   const generarPDF = async () => {
     const doc = new jsPDF("p", "mm", "a4");
     const contenedor = document.getElementById("resultados");
@@ -155,12 +150,13 @@ export default function App() {
     doc.save("reporte_comparacion.pdf");
   };
 
-  // 🔹 Reiniciar análisis
   const handleReset = () => {
     setFile(null);
     setResumen([]);
     setFragmentos([]);
     setTextoAnalizado("");
+    setTiempoAnalisis(null);
+    setPlagioGlobal(null);
   };
 
   return (
@@ -194,7 +190,7 @@ export default function App() {
         archivo para detectar similitudes y fragmentos coincidentes.
       </p>
 
-      {/* Panel de carga de base */}
+      {/* Panel de base */}
       <div
         style={{
           background: "#fff",
@@ -277,7 +273,7 @@ export default function App() {
                 cursor: "pointer",
               }}
             >
-              <i className="fas fa-broom"></i> Limpiar toda la base
+              <i className="fas fa-broom"></i> Limpiar base
             </button>
           </>
         )}
@@ -341,10 +337,26 @@ export default function App() {
           <h2
             style={{ color: "#1e3a8a", fontFamily: "'Montserrat', sans-serif" }}
           >
-            <i className="fas fa-chart-simple"></i> Resultados del Análisis
+            <i className="fas fa-chart-simple"></i> Resultados del análisis
           </h2>
 
-          <h3 style={{ marginTop: "1rem" }}>Resumen de Similitud</h3>
+          {/* NUEVO: plagio global + tiempo */}
+          <div style={{ marginTop: "1rem", marginBottom: "1.5rem" }}>
+            <p style={{ fontSize: "1.1rem" }}>
+              <strong>Plagio global:</strong>{" "}
+              <span style={{ color: "#dc2626", fontWeight: 700 }}>
+                {plagioGlobal}%
+              </span>
+            </p>
+            <p style={{ fontSize: "1.1rem" }}>
+              <strong>Tiempo de análisis:</strong>{" "}
+              <span style={{ color: "#2563eb", fontWeight: 700 }}>
+                {tiempoAnalisis} segundos
+              </span>
+            </p>
+          </div>
+
+          <h3 style={{ marginTop: "1rem" }}>Resumen de similitud</h3>
           <table
             style={{
               width: "100%",
@@ -370,7 +382,7 @@ export default function App() {
             </tbody>
           </table>
 
-          <h3 style={{ marginTop: "1.5rem" }}>Fragmentos Sospechosos</h3>
+          <h3 style={{ marginTop: "1.5rem" }}>Fragmentos sospechosos</h3>
           {fragmentos.length > 0 ? (
             <ul>
               {fragmentos.map((f, i) => (
@@ -387,7 +399,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Botones finales */}
       {resumen.length > 0 && (
         <div style={{ display: "flex", gap: "1rem" }}>
           <button
@@ -414,7 +425,7 @@ export default function App() {
               cursor: "pointer",
             }}
           >
-            <i className="fas fa-rotate-left"></i> Volver a empezar
+            <i className="fas fa-rotate-left"></i> Reiniciar
           </button>
         </div>
       )}
